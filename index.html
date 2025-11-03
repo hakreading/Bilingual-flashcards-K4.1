@@ -130,19 +130,18 @@
 
             const handleSpeak = useCallback((textToSpeak) => {
                 if (canSpeak && textToSpeak && textToSpeak !== 'Loading...') {
-                    const cleanText = textToSpeak.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]|\p{L}+)/gu, (match, p1, offset, string) => {
-                        // Check if the match is a word or an emoji. If it is a known non-English word, remove it.
-                        // This is a simple check and might need to be more robust.
-                        const nonEnglishWords = ['áo dài', 'bazar', 'ภูมิใจ', '収集切手', '天空', '칠판'];
-                        if (nonEnglishWords.includes(match.toLowerCase())) {
-                            return '';
-                        }
-                        // This regex part is to remove a broader range of symbols and pictographs including emojis
-                        if (/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g.test(match)) {
-                            return '';
-                        }
-                        return match;
-                    }).replace(/  +/g, ' ').trim();
+                    // This regex removes a wide range of emojis and symbols.
+                    const emojiAndSymbolsRegex = /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g;
+                    
+                    // Also remove specific non-English words that are in the data.
+                    const nonEnglishWords = ['áo dài', 'bazar', 'базар', 'ภูมิใจ', '収集切手', '天空', '칠판'];
+                    const nonEnglishWordsRegex = new RegExp(nonEnglishWords.join('|'), 'gi');
+
+                    const cleanText = textToSpeak
+                        .replace(emojiAndSymbolsRegex, '')
+                        .replace(nonEnglishWordsRegex, '')
+                        .replace(/  +/g, ' ') // Collapse multiple spaces
+                        .trim();
 
                     const utterance = new SpeechSynthesisUtterance(cleanText);
                     utterance.lang = 'en-US';
